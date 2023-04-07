@@ -10,7 +10,7 @@ STOPSIGNAL SIGINT
 EXPOSE 5000
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV PYTHONPATH "/python_packages:/app"
+ENV PYTHONPATH "/python_packages:/project"
 ENV USER_UID 1000
 ENV USER_GID 1000
 ENV FASTAPI_APP app:app
