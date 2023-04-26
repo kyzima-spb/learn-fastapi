@@ -1,0 +1,55 @@
+version: "3.8"
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password
+  db_user_password:
+    file: ./secrets/db_user_password
+
+volumes:
+  mysqldata:
+
+services:
+  mysql:
+    image: mysql:8-debian
+    secrets:
+      - db_root_password
+      - db_user_password
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_USER: user
+      MYSQL_PASSWORD_FILE: /run/secrets/db_user_password
+      MYSQL_DATABASE: game-store
+    command: [
+        "mysqld",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_general_ci"
+    ]
+    volumes:
+      - mysqldata:/var/lib/mysql
+    restart: unless-stopped
+  api:
+    build:
+      context: ./backend
+    secrets:
+      - db_user_password
+    environment:
+      FASTAPI_APP: store:create_app
+      FASTAPI_DEBUG: 1
+      SQLALCHEMY_DATABASE_URI: 'mysql+aiomysql://user@mysql/podnosi-api'
+      SECRET_KEY: '147bd54066d0bd14e6960237c90a654ae930645201afb30343473bab8556eae2'
+    ports:
+      - 5000:5000
+    volumes:
+      - ./backend:/project
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    ports:
+      - 5001:8080
+    depends_on:
+      - mysql
+    restart: unless-stopped
